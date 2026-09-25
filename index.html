@@ -254,8 +254,8 @@ Provide the translation in the EXACT JSON format below:
 Make sure all 'notes' and 'intro' are written in Korean. All English examples must be accurate and natural. Return ONLY valid JSON.
 `;
 
-      // 정식 지원 중인 Gemini 모델 우회 순서
-      const fallbackModels = ['gemini-2.0-flash', 'gemini-1.5-flash'];
+      // 구글 최신 권장 모델 순서 (gemini-3.8-flash -> gemini-2.0-flash -> gemini-1.5-flash)
+      const fallbackModels = ['gemini-3.8-flash', 'gemini-2.0-flash', 'gemini-1.5-flash'];
       let successData = null;
       let lastError = null;
 
