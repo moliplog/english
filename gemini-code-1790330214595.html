@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gemini 실시간 뉘앙스 & 패턴 번역기</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+    body { font-family: 'Pretendard', sans-serif; }
+  </style>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen pb-16">
+
+  <!-- Header -->
+  <header class="border-b border-slate-800 bg-slate-950/80 backdrop-blur sticky top-0 z-50">
+    <div class="max-w-4xl mx-auto px-4 py-4 flex justify-between items-center">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center font-bold text-xl shadow-lg shadow-indigo-500/30">
+          <i class="fa-solid fa-brain text-white"></i>
+        </div>
+        <div>
+          <h1 class="text-lg font-bold text-white">나만의 Gemini AI 번역기</h1>
+          <p class="text-xs text-slate-400">어떤 한국어든 3가지 뉘앙스 & 패턴으로 실시간 변환</p>
+        </div>
+      </div>
+      
+      <!-- API Key Modal Trigger -->
+      <button onclick="toggleKeyModal()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-xs font-semibold rounded-lg text-slate-300 border border-slate-700 flex items-center gap-1.5 transition">
+        <i class="fa-solid fa-key text-amber-400"></i> API 키 설정
+      </button>
+    </div>
+  </header>
+
+  <main class="max-w-4xl mx-auto px-4 mt-8">
+    
+    <!-- Input Box Section -->
+    <section class="bg-slate-800/80 border border-slate-700/60 rounded-2xl p-6 shadow-xl mb-8">
+      <label class="block text-sm font-semibold text-slate-300 mb-2">
+        <i class="fa-solid fa-pen-to-square text-indigo-400 mr-1.5"></i> 한국어 문장 입력
+      </label>
+      <div class="flex gap-2 mb-2">
+        <input type="text" id="koInput" placeholder="예: 추석 아침 그 어린 아이가 안쓰러운 느낌이었다." 
+               class="flex-1 bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition">
+        <button onclick="translateWithGemini()" id="btnSubmit" class="px-6 py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-xl transition shadow-lg shadow-indigo-600/30 shrink-0 flex items-center gap-2">
+          <span>변환하기</span>
+          <i class="fa-solid fa-paper-plane text-sm"></i>
+        </button>
+      </div>
+      <p id="keyNotice" class="text-xs text-amber-400 hidden"><i class="fa-solid fa-triangle-exclamation mr-1"></i> API 키를 먼저 설정해야 동작합니다. (우측 상단 클릭)</p>
+    </section>
+
+    <!-- Loading Spinner -->
+    <div id="loading" class="hidden text-center py-12 space-y-3">
+      <div class="inline-block w-10 h-10 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+      <p class="text-sm text-slate-400">Gemini AI가 뉘앙스와 패턴을 분석 중입니다...</p>
+    </div>
+
+    <!-- Render Target Container -->
+    <div id="outputContainer" class="space-y-6"></div>
+
+  </main>
+
+  <!-- API Key Modal -->
+  <div id="keyModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 max-w-md w-full space-y-4 shadow-2xl">
+      <div class="flex justify-between items-center border-b border-slate-700 pb-3">
+        <h3 class="font-bold text-white flex items-center gap-2">
+          <i class="fa-solid fa-key text-amber-400"></i> Google Gemini API Key 입력
+        </h3>
+        <button onclick="toggleKeyModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <p class="text-xs text-slate-300 leading-relaxed">
+        내 브라우저(LocalStorage)에 안전하게 저장되며 외부로 전송되지 않습니다.
+        <a href="https://aistudio.google.com/app/apikey" target="_blank" class="text-indigo-400 underline font-semibold ml-1">무료 키 발급받기 ↗</a>
+      </p>
+      <input type="password" id="apiKeyInput" placeholder="AIzaSy..." 
+             class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-indigo-500 transition font-mono text-sm">
+      <div class="flex justify-end gap-2 pt-2">
+        <button onclick="saveApiKey()" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-medium rounded-xl text-sm transition">
+          저장하기
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // LocalStorage에서 API 키 로드
+    let GEMINI_API_KEY = localStorage.getItem('user_gemini_key') || '';
+
+    window.onload = () => {
+      if (GEMINI_API_KEY) {
+        document.getElementById('apiKeyInput').value = GEMINI_API_KEY;
+      } else {
+        document.getElementById('keyNotice').classList.remove('hidden');
+      }
+
+      // Enter키로 변환 실행
+      document.getElementById('koInput').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') translateWithGemini();
+      });
+    };
+
+    function toggleKeyModal() {
+      const modal = document.getElementById('keyModal');
+      modal.classList.toggle('hidden');
+    }
+
+    function saveApiKey() {
+      const key = document.getElementById('apiKeyInput').value.trim();
+      if (!key) return alert('API 키를 입력해주세요.');
+      
+      GEMINI_API_KEY = key;
+      localStorage.setItem('user_gemini_key', key);
+      document.getElementById('keyNotice').classList.add('hidden');
+      toggleKeyModal();
+      alert('API 키가 성공적으로 저장되었습니다!');
+    }
+
+    function speak(text) {
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+        const u = new SpeechSynthesisUtterance(text);
+        u.lang = 'en-US';
+        u.rate = 0.9;
+        window.speechSynthesis.speak(u);
+      }
+    }
+
+    async function translateWithGemini() {
+      const inputText = document.getElementById('koInput').value.trim();
+      if (!inputText) return alert('한국어 문장을 입력해주세요.');
+      if (!GEMINI_API_KEY) {
+        toggleKeyModal();
+        return alert('서비스를 이용하려면 Gemini API 키가 필요합니다.');
+      }
+
+      const loading = document.getElementById('loading');
+      const container = document.getElementById('outputContainer');
+      const btnSubmit = document.getElementById('btnSubmit');
+
+      loading.classList.remove('hidden');
+      container.innerHTML = '';
+      btnSubmit.disabled = true;
+
+      const prompt = `
+You are an expert Korean-English translator and language tutor.
+Translate the following Korean sentence: "${inputText}"
+
+Provide the translation in the EXACT JSON format below:
+{
+  "intro": "상황과 뉘앙스에 따라 다채롭게 활용할 수 있는 대표 표현 3가지와 주요 패턴입니다.",
+  "sections": [
+    {
+      "num": "1",
+      "title": "자연스러운 일상 회화",
+      "en": "English sentence 1",
+      "notes": [
+        "<b>key word/phrase</b>: 설명",
+        "<b>활용</b>: 설명"
+      ]
+    },
+    {
+      "num": "2",
+      "title": "생생하고 묘사적인 표현",
+      "en": "English sentence 2",
+      "notes": [
+        "<b>key word/phrase</b>: 설명"
+      ]
+    },
+    {
+      "num": "3",
+      "title": "강조형 비격식 표현",
+      "en": "English sentence 3",
+      "notes": [
+        "<b>key word/phrase</b>: 설명",
+        "<b>활용</b>: 설명"
+      ]
+    }
+  ],
+  "patterns": [
+    {
+      "title": "Pattern 1. Pattern template 1",
+      "items": ["Example sentence 1", "Example sentence 2", "Example sentence 3"]
+    },
+    {
+      "title": "Pattern 2. Pattern template 2",
+      "items": ["Example sentence 1", "Example sentence 2", "Example sentence 3"]
+    },
+    {
+      "title": "Pattern 3. Pattern template 3",
+      "items": ["Example sentence 1", "Example sentence 2", "Example sentence 3"]
+    }
+  ]
+}
+
+Make sure all 'notes' and 'intro' are written in Korean. All English examples must be accurate and natural. Return ONLY valid JSON.
+`;
+
+      try {
+        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: prompt }] }],
+            generationConfig: { responseMimeType: "application/json" }
+          })
+        });
+
+        const data = await res.json();
+        if (data.error) throw new Error(data.error.message || 'API 오류 발생');
+
+        const rawText = data.candidates[0].content.parts[0].text;
+        const parsedData = JSON.parse(rawText);
+
+        renderData(parsedData);
+      } catch (err) {
+        alert('오류가 발생했습니다: ' + err.message);
+      } finally {
+        loading.classList.add('hidden');
+        btnSubmit.disabled = false;
+      }
+    }
+
+    function renderData(data) {
+      const container = document.getElementById('outputContainer');
+      let html = `<p class="text-slate-300 text-sm mb-6">${data.intro}</p>`;
+
+      // 1~3번 섹션 출력
+      data.sections.forEach(sec => {
+        html += `
+          <div class="bg-slate-800/80 border border-slate-700/70 rounded-2xl p-6 shadow-lg space-y-3">
+            <h3 class="text-indigo-400 font-bold text-base flex items-center gap-2">
+              <span class="w-6 h-6 rounded-full bg-indigo-500/20 text-indigo-300 flex items-center justify-center text-xs border border-indigo-500/30">${sec.num}</span>
+              ${sec.title}
+            </h3>
+            <div class="bg-slate-950 border border-slate-800 rounded-xl p-4 flex justify-between items-center">
+              <p class="text-lg font-bold text-white tracking-wide">${sec.en}</p>
+              <button onclick="speak('${sec.en.replace(/'/g, "\\'")}')" class="text-slate-400 hover:text-indigo-400 p-2 transition">
+                <i class="fa-solid fa-volume-high text-lg"></i>
+              </button>
+            </div>
+            <div class="space-y-1.5 text-sm text-slate-300 pt-1">
+        `;
+        sec.notes.forEach(note => {
+          html += `<p class="leading-relaxed"><span class="text-slate-500 mr-2">•</span>${note}</p>`;
+        });
+        html += `</div></div>`;
+      });
+
+      // 패턴 연습 영역
+      html += `
+        <div class="bg-slate-800/40 border border-slate-700/50 rounded-2xl p-6 mt-8 space-y-6">
+          <h3 class="text-lg font-bold text-white flex items-center gap-2 border-b border-slate-700/60 pb-3">
+            <i class="fa-solid fa-layer-group text-indigo-400"></i> 패턴 연습으로 익히기
+          </h3>
+      `;
+
+      data.patterns.forEach(pat => {
+        html += `
+          <div class="space-y-3">
+            <h4 class="text-sm font-semibold text-indigo-300 font-mono">${pat.title}</h4>
+            <div class="space-y-2">
+        `;
+        pat.items.forEach(item => {
+          html += `
+            <div class="bg-slate-950 border border-slate-800/80 rounded-xl px-4 py-3 text-slate-200 text-sm flex justify-between items-center hover:border-slate-700 transition">
+              <span>${item}</span>
+              <button onclick="speak('${item.replace(/'/g, "\\'")}')" class="text-slate-500 hover:text-indigo-400 transition">
+                <i class="fa-solid fa-volume-high"></i>
+              </button>
+            </div>
+          `;
+        });
+        html += `</div></div>`;
+      });
+
+      html += `</div>`;
+      container.innerHTML = html;
+    }
+  </script>
+</body>
+</html>
