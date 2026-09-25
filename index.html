@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Go! 영어 작문 & 패턴 활용 무한 트레이너</title>
+  <title>Go! 영어 작문 & 패턴 AI 무한 트레이너</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
@@ -18,19 +18,23 @@
     <div class="max-w-4xl mx-auto px-4 py-4 flex justify-between items-center">
       <div class="flex items-center gap-3">
         <div class="w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center font-bold text-xl shadow-lg shadow-indigo-500/30">
-          <i class="fa-solid fa-graduation-cap text-white"></i>
+          <i class="fa-solid fa-brain text-white"></i>
         </div>
         <div>
-          <h1 class="text-lg font-bold text-white">Go! 영어 작문 & 패턴 트레이너</h1>
-          <p class="text-xs text-slate-400">뉘앙스별 표현 분석 & 무한 반복 타이핑 학습</p>
+          <h1 class="text-lg font-bold text-white">Go! 영어 작문 & 패턴 AI 트레이너</h1>
+          <p class="text-xs text-slate-400">실시간 AI 뉘앙스 분석 & 무한 타이핑 학습</p>
         </div>
       </div>
-      <div class="flex gap-2">
-        <button onclick="switchTab('cards')" id="btnTabCards" class="px-3.5 py-2 text-xs md:text-sm rounded-lg font-semibold bg-indigo-600 text-white transition flex items-center gap-1.5">
+      
+      <div class="flex items-center gap-2">
+        <button onclick="switchTab('cards')" id="btnTabCards" class="px-3 py-1.5 text-xs md:text-sm rounded-lg font-semibold bg-indigo-600 text-white transition flex items-center gap-1.5">
           <i class="fa-solid fa-layer-group"></i> 표현 분석
         </button>
-        <button onclick="switchTab('practice')" id="btnTabPractice" class="px-3.5 py-2 text-xs md:text-sm rounded-lg font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700 transition flex items-center gap-1.5">
-          <i class="fa-solid fa-repeat"></i> 무한 반복 연습
+        <button onclick="switchTab('practice')" id="btnTabPractice" class="px-3 py-1.5 text-xs md:text-sm rounded-lg font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700 transition flex items-center gap-1.5">
+          <i class="fa-solid fa-repeat"></i> 무한 연습
+        </button>
+        <button onclick="toggleKeyModal()" class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-xs font-semibold rounded-lg text-amber-400 border border-slate-700 transition ml-1">
+          <i class="fa-solid fa-key"></i> Key
         </button>
       </div>
     </div>
@@ -38,59 +42,54 @@
 
   <main class="max-w-4xl mx-auto px-4 mt-8">
     
-    <!-- Input Section -->
+    <!-- Input Box Section -->
     <section class="bg-slate-800/80 border border-slate-700/60 rounded-2xl p-6 shadow-xl mb-8">
       <label class="block text-sm font-semibold text-slate-300 mb-2">
-        <i class="fa-solid fa-pen-to-square text-indigo-400 mr-1.5"></i> 한국어 문장 입력 또는 프리셋 선택
+        <i class="fa-solid fa-pen-to-square text-indigo-400 mr-1.5"></i> 한국어 문장 입력 (AI 실시간 분석)
       </label>
-      <div class="flex gap-2 mb-4">
+      <div class="flex gap-2 mb-2">
         <input type="text" id="koInput" placeholder="예: 추석 아침 그 어린 아이가 안쓰러운 느낌이었다." 
                class="flex-1 bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition">
-        <button onclick="handleProcess()" class="px-6 py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-xl transition shadow-lg shadow-indigo-600/30 shrink-0">
-          분석하기
+        <button onclick="translateWithGemini()" id="btnSubmit" class="px-6 py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-xl transition shadow-lg shadow-indigo-600/30 shrink-0 flex items-center gap-2">
+          <span>AI 변환</span>
+          <i class="fa-solid fa-paper-plane text-sm"></i>
         </button>
       </div>
-
-      <!-- Preset Quick Selection -->
-      <div class="flex flex-wrap gap-2 items-center text-xs">
-        <span class="text-slate-400">학습 샘플:</span>
-        <button onclick="loadPreset(0)" class="px-3 py-1.5 bg-slate-700/60 hover:bg-slate-700 rounded-lg text-slate-300 transition">
-          1. 안쓰러운 아이
-        </button>
-        <button onclick="loadPreset(1)" class="px-3 py-1.5 bg-slate-700/60 hover:bg-slate-700 rounded-lg text-slate-300 transition">
-          2. 종잡을 수 없는 너
-        </button>
-        <button onclick="loadPreset(2)" class="px-3 py-1.5 bg-slate-700/60 hover:bg-slate-700 rounded-lg text-slate-300 transition">
-          3. 어수선했던 상황
-        </button>
-        <button onclick="loadPreset(3)" class="px-3 py-1.5 bg-slate-700/60 hover:bg-slate-700 rounded-lg text-slate-300 transition">
-          4. 공감 여부 묻기
-        </button>
-      </div>
+      <p id="keyNotice" class="text-xs text-amber-400 hidden"><i class="fa-solid fa-triangle-exclamation mr-1"></i> API 키를 설정해주세요. (우측 상단 Key 버튼)</p>
     </section>
+
+    <!-- Loading Spinner -->
+    <div id="loading" class="hidden text-center py-12 space-y-3">
+      <div class="inline-block w-10 h-10 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+      <p id="statusMsg" class="text-sm text-slate-400">Gemini AI가 문장을 분석하고 최적의 패턴을 생성 중입니다...</p>
+    </div>
 
     <!-- TAB 1: Expression Cards View -->
     <div id="tabCards" class="space-y-6">
-      <div id="cardsContainer" class="space-y-6"></div>
+      <div id="cardsContainer" class="space-y-6">
+        <div class="text-center py-12 text-slate-500 text-sm">
+          상단에 한국어 문장을 입력하고 [AI 변환] 버튼을 누르면 실시간 분석이 시작됩니다.
+        </div>
+      </div>
     </div>
 
     <!-- TAB 2: Infinite Practice Mode -->
     <div id="tabPractice" class="hidden">
       <div class="bg-slate-800/90 border border-slate-700 rounded-2xl p-8 text-center max-w-2xl mx-auto shadow-2xl">
         <div class="inline-block px-3 py-1 rounded-full bg-indigo-500/10 text-indigo-400 text-xs font-semibold mb-4 border border-indigo-500/20">
-          <i class="fa-solid fa-headphones mr-1"></i> 무한 반복 섀도잉 & 타이핑 트레이닝
+          <i class="fa-solid fa-headphones mr-1"></i> AI 생성 문장 무한 섀도잉 & 타이핑 트레이닝
         </div>
 
-        <div class="text-slate-400 text-sm mb-2" id="practiceKoText">원문 뜻이 여기에 표시됩니다.</div>
+        <div class="text-slate-400 text-sm mb-2" id="practiceKoText">AI 분석 결과가 여기에 표시됩니다.</div>
         <div class="text-xl md:text-2xl font-bold text-white mb-6 tracking-wide flex items-center justify-center gap-3">
-          <span id="practiceEnHint">English Sentence</span>
-          <button onclick="speakText(currentPracticeSentence)" class="text-indigo-400 hover:text-indigo-300 transition p-1">
+          <span id="practiceEnHint">Sentence Practice</span>
+          <button onclick="speak(currentPracticeSentence)" class="text-indigo-400 hover:text-indigo-300 transition p-1">
             <i class="fa-solid fa-volume-high text-xl"></i>
           </button>
         </div>
 
         <div class="space-y-4 max-w-md mx-auto">
-          <input type="text" id="typingInput" placeholder="위 문장을 똑같이 따라 입력하세요" 
+          <input type="text" id="typingInput" placeholder="위 영문장을 보고 그대로 따라 입력하세요" 
                  class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-center text-white focus:outline-none focus:border-indigo-500 transition">
           <div id="feedback" class="text-sm h-6 font-semibold"></div>
 
@@ -104,257 +103,78 @@
           </div>
         </div>
 
-        <!-- Practice Stats -->
         <div class="mt-8 pt-6 border-t border-slate-700/60 flex justify-around text-xs text-slate-400">
           <div>성공 횟수: <span id="statSuccess" class="text-indigo-400 font-bold text-sm">0</span></div>
-          <div>현재 카드: <span id="statCurrent" class="text-slate-200 font-bold text-sm">1</span> / <span id="statTotal" class="text-slate-200 font-bold text-sm">0</span></div>
+          <div>현재 카드: <span id="statCurrent" class="text-slate-200 font-bold text-sm">0</span> / <span id="statTotal" class="text-slate-200 font-bold text-sm">0</span></div>
         </div>
       </div>
     </div>
 
   </main>
 
-  <script>
-    // 내장 정밀 데이터 베이스
-    const presets = [
-      {
-        ko: "추석 아침 그 어린 아이가 안쓰러운 느낌이었다.",
-        nuances: [
-          {
-            num: "1",
-            title: "자연스러운 일상 회화",
-            en: "I felt so sorry for that little kid on Chuseok morning.",
-            notes: [
-              "<b>feel sorry for</b>: '~를 불쌍하게 여기다, 안쓰러워하다'라는 뜻으로, 측은한 마음을 표현하는 대표 표현입니다.",
-              "<b>Chuseok morning</b>: '추석 아침'을 뜻하는 자연스러운 일상 표현입니다."
-            ]
-          },
-          {
-            num: "2",
-            title: "생생하고 묘사적인 표현 (깊은 애련과 동정)",
-            en: "My heart went out to that young child on the morning of Chuseok.",
-            notes: [
-              "<b>heart goes out to</b>: 마음이 ~에게 가 닿다, 가슴 미어지게 안쓰럽다는 서정적 고급 표현입니다.",
-              "<b>on the morning of [명사]</b>: 특정 날의 아침을 인상 깊게 묘사할 때 쓰입니다."
-            ]
-          },
-          {
-            num: "3",
-            title: "감정 강조형 표현 (가슴 아픔 피력)",
-            en: "It broke my heart seeing that poor kid on Chuseok morning.",
-            notes: [
-              "<b>break one's heart</b>: '가슴을 찢어놓다, 마음을 너무 아프게 하다'라는 강한 감정 표현입니다.",
-              "<b>poor kid</b>: '안타까운/불쌍한 아이'라는 동정과 연민의 의미로 사용됩니다."
-            ]
-          }
-        ],
-        patterns: [
-          {
-            title: "Pattern 1. I felt so sorry for [대상] on [시간/상황]",
-            items: [
-              "I felt so sorry for that little kid on Chuseok morning.",
-              "I felt so sorry for the lost puppy on that rainy night.",
-              "I felt so sorry for him on his last day at work."
-            ]
-          },
-          {
-            title: "Pattern 2. My heart went out to [대상] on [시간/상황]",
-            items: [
-              "My heart went out to that young child on the morning of Chuseok.",
-              "My heart went out to the family on that tragic day.",
-              "My heart went out to the elderly man on that freezing winter morning."
-            ]
-          },
-          {
-            title: "Pattern 3. It broke my heart seeing [대상/상황]",
-            items: [
-              "It broke my heart seeing that poor kid on Chuseok morning.",
-              "It broke my heart seeing him cry all alone in the corner.",
-              "It broke my heart seeing them leave without saying goodbye."
-            ]
-          }
-        ]
-      },
-      {
-        ko: "너는 참 종잡을 수가 없구나. 이랬다 저랬다 하고.",
-        nuances: [
-          {
-            num: "1",
-            title: "자연스러운 일상 회화",
-            en: "You're so unpredictable. You keep changing your mind.",
-            notes: [
-              "<b>unpredictable</b>: '종잡을 수 없는, 예측 불가능한' 성격이나 행동을 표현합니다.",
-              "<b>change one's mind</b>: '마음을 바꾸다, 이랬다저랬다 하다'의 대표 구문입니다."
-            ]
-          },
-          {
-            num: "2",
-            title: "생생하고 묘사적인 표현 (갈팡질팡 강조)",
-            en: "You're so wishy-washy. You keep going back and forth.",
-            notes: [
-              "<b>wishy-washy</b>: 태도가 미적지근하고 우유부단하여 이랬다저랬다 하는 모양을 가리킵니다.",
-              "<b>go back and forth</b>: 마음이 '왔다 갔다 하다'라는 느낌을 직관적으로 보여줍니다."
-            ]
-          },
-          {
-            num: "3",
-            title: "강조형 비격식 표현 (답답함/장난스러운 핀잔)",
-            en: "I can never tell with you. You're constantly flipping back and forth!",
-            notes: [
-              "<b>I can never tell with you</b>: '너란 사람은 정말 종잡을 수가 없다'는 원어민 표현입니다.",
-              "<b>flip back and forth</b>: 손바닥 뒤집듯 태도를 휙휙 바꾸는 뉘앙스입니다."
-            ]
-          }
-        ],
-        patterns: [
-          {
-            title: "Pattern 1. You're so [성향]. You keep [동사-ing]",
-            items: [
-              "You're so unpredictable. You keep changing your mind.",
-              "You're so indecisive. You keep delaying the choice.",
-              "You're so inconsistent. You keep switching your answers."
-            ]
-          },
-          {
-            title: "Pattern 2. You keep going back and forth on [주제]",
-            items: [
-              "You keep going back and forth on this whole plan.",
-              "You keep going back and forth on what you want to eat.",
-              "You keep going back and forth on whether to leave or stay."
-            ]
-          },
-          {
-            title: "Pattern 3. I can never tell [의문사구/문장]",
-            items: [
-              "I can never tell with you.",
-              "I can never tell if you're being serious or joking.",
-              "I can never tell what you're going to do next."
-            ]
-          }
-        ]
-      },
-      {
-        ko: "비가 많이 오고 사람도 많아서 어수선했다.",
-        nuances: [
-          {
-            num: "1",
-            title: "자연스러운 일상 회화",
-            en: "It was so hectic because of the heavy rain and all the people.",
-            notes: [
-              "<b>hectic</b>: '정신없이 바쁘고 어수선한' 상황에 가장 보편적으로 쓰이는 단어입니다.",
-              "<b>all the people</b>: '사람이 많음'을 자연스럽게 덧붙여 원인을 강조합니다."
-            ]
-          },
-          {
-            num: "2",
-            title: "생생하고 묘사적인 표현",
-            en: "Between the heavy downpour and the massive crowd, it was completely chaotic.",
-            notes: [
-              "<b>heavy downpour</b>: 단순한 비가 아닌 '억수같이 퍼붓는 장대비'를 뜻합니다.",
-              "<b>massive crowd</b>: '인산인해를 이룬 사람들의 무리'를 표현합니다."
-            ]
-          },
-          {
-            num: "3",
-            title: "강조형 비격식 표현",
-            en: "It was a total madhouse with the rain pouring down and people everywhere.",
-            notes: [
-              "<b>total madhouse</b>: 실제 회화에서 '완전 난장판, 아수라장'을 뜻하는 대화체 표현입니다.",
-              "<b>pouring down</b>: 비가 거세게 쏟아져 내리는 모습을 생생하게 나타냅니다."
-            ]
-          }
-        ],
-        patterns: [
-          {
-            title: "Pattern 1. It was so [어수선함] because of [원인 1] and [원인 2]",
-            items: [
-              "It was so hectic because of the rain and the noise.",
-              "It was so chaotic because of the traffic and the late arrival.",
-              "It was so messy because of the sudden move and the construction."
-            ]
-          },
-          {
-            title: "Pattern 2. Between [원인 1] and [원인 2], it was [상태]",
-            items: [
-              "Between the heavy rain and the massive crowd, it was unbearable.",
-              "Between the tight schedule and the ongoing calls, it was exhausting.",
-              "Between the cold weather and the long line, it was a disaster."
-            ]
-          },
-          {
-            title: "Pattern 3. It was a total [강조 명사] with [상황]",
-            items: [
-              "It was a total madhouse with people yelling around.",
-              "It was a total chaos with everything happening at once.",
-              "It was a total mess with all the delay and confusion."
-            ]
-          }
-        ]
-      },
-      {
-        ko: "내가 그 말에 공감을 할 것 같아 안 할 것 같아?",
-        nuances: [
-          {
-            num: "1",
-            title: "자연스러운 일상 회화",
-            en: "Do you think I relate to that or not?",
-            notes: [
-              "<b>relate to</b>: 상대의 말에 공감하고 이해하는지 묻는 정석적인 표현입니다."
-            ]
-          },
-          {
-            num: "2",
-            title: "장난스럽거나 비꼬는 뉘앙스 (답정너)",
-            en: "Do I look like someone who'd agree with that?",
-            notes: [
-              "<b>look like someone who...</b>: '내가 ~할 사람처럼 보여?'라는 유쾌한 핀잔조의 표현입니다."
-            ]
-          },
-          {
-            num: "3",
-            title: "감정선/유대감을 묻는 표현",
-            en: "Do you think we see eye to eye on that?",
-            notes: [
-              "<b>see eye to eye</b>: '시각이나 견해가 일치하다/공감하다'라는 대표 관용구입니다."
-            ]
-          }
-        ],
-        patterns: [
-          {
-            title: "Pattern 1. Do you think I'd [동사원형] or not?",
-            items: [
-              "Do you think I'd relate to that or not?",
-              "Do you think I'd feel the same way or not?",
-              "Do you think I'd understand that or not?"
-            ]
-          },
-          {
-            title: "Pattern 2. Do I look like someone who [동사원형]?",
-            items: [
-              "Do I look like someone who agrees with that?",
-              "Do I look like someone who finds that relatable?",
-              "Do I look like someone who cares about that?"
-            ]
-          },
-          {
-            title: "Pattern 3. Would you say I [동사원형]?",
-            items: [
-              "Would you say I resonate with that idea?",
-              "Would you say I buy into that?",
-              "Would you say I get where they're coming from?"
-            ]
-          }
-        ]
-      }
-    ];
+  <!-- API Key Modal -->
+  <div id="keyModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 max-w-md w-full space-y-4 shadow-2xl">
+      <div class="flex justify-between items-center border-b border-slate-700 pb-3">
+        <h3 class="font-bold text-white flex items-center gap-2">
+          <i class="fa-solid fa-key text-amber-400"></i> Google Gemini API Key 입력
+        </h3>
+        <button onclick="toggleKeyModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <p class="text-xs text-slate-300 leading-relaxed">
+        브라우저에 안전하게 저장됩니다.
+        <a href="https://aistudio.google.com/app/apikey" target="_blank" class="text-indigo-400 underline font-semibold ml-1">무료 키 발급 ↗</a>
+      </p>
+      <input type="password" id="apiKeyInput" placeholder="AIzaSy..." 
+             class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-indigo-500 transition font-mono text-sm">
+      <div class="flex justify-end gap-2 pt-2">
+        <button onclick="saveApiKey()" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-medium rounded-xl text-sm transition">
+          저장하기
+        </button>
+      </div>
+    </div>
+  </div>
 
-    let currentData = presets[0];
+  <script>
+    let GEMINI_API_KEY = localStorage.getItem('user_gemini_key') || '';
+    let currentData = null;
     let practiceList = [];
     let practiceIndex = 0;
     let currentPracticeSentence = "";
     let successCount = 0;
 
-    function speakText(text) {
+    window.onload = () => {
+      if (GEMINI_API_KEY) {
+        document.getElementById('apiKeyInput').value = GEMINI_API_KEY;
+      } else {
+        document.getElementById('keyNotice').classList.remove('hidden');
+      }
+
+      document.getElementById('koInput').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') translateWithGemini();
+      });
+
+      document.getElementById('typingInput').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') checkTyping();
+      });
+    };
+
+    function toggleKeyModal() {
+      document.getElementById('keyModal').classList.toggle('hidden');
+    }
+
+    function saveApiKey() {
+      const key = document.getElementById('apiKeyInput').value.trim();
+      if (!key) return alert('API 키를 입력해주세요.');
+      
+      GEMINI_API_KEY = key;
+      localStorage.setItem('user_gemini_key', key);
+      document.getElementById('keyNotice').classList.add('hidden');
+      toggleKeyModal();
+      alert('API 키가 저장되었습니다!');
+    }
+
+    function speak(text) {
       if ('speechSynthesis' in window) {
         window.speechSynthesis.cancel();
         const u = new SpeechSynthesisUtterance(text);
@@ -364,87 +184,124 @@
       }
     }
 
-    function init() {
-      loadPreset(0);
-
-      document.getElementById('typingInput').addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') checkTyping();
-      });
-    }
-
-    function loadPreset(idx) {
-      currentData = presets[idx];
-      document.getElementById('koInput').value = currentData.ko;
-      renderCards();
-      setupPractice();
-    }
-
-    function handleProcess() {
-      const val = document.getElementById('koInput').value.trim();
-      if (!val) return;
-
-      const matched = presets.find(p => p.ko.includes(val) || val.includes(p.ko));
-      if (matched) {
-        currentData = matched;
-      } else {
-        // 입력받은 문장에 대응하는 다이나믹 세트 생성
-        currentData = {
-          ko: val,
-          nuances: [
-            {
-              num: "1",
-              title: "자연스러운 일상 회화",
-              en: `I feel like it's quite clear regarding '${val}'.`,
-              notes: ["<b>when it comes to / regarding</b>: '~에 관해서라면'이라는 구어체 표현입니다."]
-            },
-            {
-              num: "2",
-              title: "생생하고 묘사적인 표현",
-              en: `Honestly, '${val}' made everything feel completely different.`,
-              notes: ["<b>make feel</b>: 상황이나 분위기를 한층 입체적으로 전달합니다."]
-            },
-            {
-              num: "3",
-              title: "강조형 비격식 표현",
-              en: `I mean, how could anyone not think about '${val}'?`,
-              notes: ["<b>How could anyone...</b>: 대화에서 의견을 강하게 피력할 때 씁니다."]
-            }
-          ],
-          patterns: [
-            {
-              title: "Pattern 1. I feel like [상황/생각]",
-              items: [
-                `I feel like it's clear regarding this situation.`,
-                `I feel like we need to think more about it.`,
-                `I feel like everything is going as planned.`
-              ]
-            },
-            {
-              title: "Pattern 2. Honestly, [주어] made [대상] feel [형용사]",
-              items: [
-                `Honestly, the news made everyone feel relieved.`,
-                `Honestly, the weather made us feel exhausted.`,
-                `Honestly, the speech made them feel inspired.`
-              ]
-            },
-            {
-              title: "Pattern 3. How could anyone [동사원형]?",
-              items: [
-                `How could anyone forget that moment?`,
-                `How could anyone ignore this problem?`,
-                `How could anyone say no to that offer?`
-              ]
-            }
-          ]
-        };
+    async function translateWithGemini() {
+      const inputText = document.getElementById('koInput').value.trim();
+      if (!inputText) return alert('한국어 문장을 입력해주세요.');
+      if (!GEMINI_API_KEY) {
+        toggleKeyModal();
+        return alert('서비스를 이용하려면 Gemini API 키가 필요합니다.');
       }
 
-      renderCards();
-      setupPractice();
+      const loading = document.getElementById('loading');
+      const btnSubmit = document.getElementById('btnSubmit');
+      const statusMsg = document.getElementById('statusMsg');
+
+      loading.classList.remove('hidden');
+      btnSubmit.disabled = true;
+
+      const prompt = `
+You are an expert Korean-English translator and language tutor.
+Translate the following Korean sentence: "${inputText}"
+
+Provide the translation in the EXACT JSON format below:
+{
+  "ko": "${inputText}",
+  "intro": "상황과 뉘앙스에 따라 다채롭게 활용할 수 있는 대표 표현 3가지와 주요 패턴입니다.",
+  "sections": [
+    {
+      "num": "1",
+      "title": "자연스러운 일상 회화",
+      "en": "English sentence 1",
+      "notes": [
+        "<b>key word/phrase</b>: 설명",
+        "<b>활용</b>: 설명"
+      ]
+    },
+    {
+      "num": "2",
+      "title": "생생하고 묘사적인 표현",
+      "en": "English sentence 2",
+      "notes": [
+        "<b>key word/phrase</b>: 설명"
+      ]
+    },
+    {
+      "num": "3",
+      "title": "강조형 비격식 표현",
+      "en": "English sentence 3",
+      "notes": [
+        "<b>key word/phrase</b>: 설명",
+        "<b>활용</b>: 설명"
+      ]
+    }
+  ],
+  "patterns": [
+    {
+      "title": "Pattern 1. Pattern template 1",
+      "items": ["Example sentence 1", "Example sentence 2", "Example sentence 3"]
+    },
+    {
+      "title": "Pattern 2. Pattern template 2",
+      "items": ["Example sentence 1", "Example sentence 2", "Example sentence 3"]
+    },
+    {
+      "title": "Pattern 3. Pattern template 3",
+      "items": ["Example sentence 1", "Example sentence 2", "Example sentence 3"]
+    }
+  ]
+}
+
+Make sure all 'notes' and 'intro' are written in Korean. All English examples must be accurate and natural. Return ONLY valid JSON.
+`;
+
+      // 과부하 방지용 3단계 자동 모델 우회 목록
+      const fallbackModels = ['gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-1.5-pro'];
+      let successData = null;
+      let lastError = null;
+
+      for (const model of fallbackModels) {
+        try {
+          statusMsg.innerText = `Gemini AI (${model}) 분석 중...`;
+          const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              contents: [{ parts: [{ text: prompt }] }],
+              generationConfig: { responseMimeType: "application/json" }
+            })
+          });
+
+          const data = await res.json();
+          if (data.error) {
+            lastError = data.error.message;
+            console.warn(`Model ${model} failed, trying next...`, data.error);
+            continue;
+          }
+
+          const rawText = data.candidates[0].content.parts[0].text;
+          successData = JSON.parse(rawText);
+          break;
+        } catch (err) {
+          lastError = err.message;
+        }
+      }
+
+      if (successData) {
+        currentData = successData;
+        renderCards();
+        setupPractice();
+      } else {
+        alert('서버 혼잡으로 분석 실패: ' + lastError);
+      }
+
+      loading.classList.add('hidden');
+      btnSubmit.disabled = false;
     }
 
     function renderCards() {
+      if (!currentData) return;
       const container = document.getElementById('cardsContainer');
+
       let html = `
         <div class="border-b border-slate-800 pb-3 flex justify-between items-end">
           <div>
@@ -452,9 +309,10 @@
             <h2 class="text-xl md:text-2xl font-bold text-white mt-1">${currentData.ko}</h2>
           </div>
         </div>
+        <p class="text-slate-300 text-sm mb-6">${currentData.intro}</p>
       `;
 
-      currentData.nuances.forEach(sec => {
+      currentData.sections.forEach(sec => {
         html += `
           <div class="bg-slate-800/80 border border-slate-700/70 rounded-2xl p-6 shadow-lg space-y-3">
             <h3 class="text-indigo-400 font-bold text-base flex items-center gap-2">
@@ -463,7 +321,7 @@
             </h3>
             <div class="bg-slate-950 border border-slate-800 rounded-xl p-4 flex justify-between items-center">
               <p class="text-base md:text-lg font-bold text-white tracking-wide">${sec.en}</p>
-              <button onclick="speakText('${sec.en.replace(/'/g, "\\'")}')" class="text-slate-400 hover:text-indigo-400 p-2 transition shrink-0 ml-2">
+              <button onclick="speak('${sec.en.replace(/'/g, "\\'")}')" class="text-slate-400 hover:text-indigo-400 p-2 transition shrink-0 ml-2">
                 <i class="fa-solid fa-volume-high text-lg"></i>
               </button>
             </div>
@@ -478,7 +336,7 @@
       html += `
         <div class="bg-slate-800/40 border border-slate-700/50 rounded-2xl p-6 mt-8 space-y-6">
           <h3 class="text-md md:text-lg font-bold text-white flex items-center gap-2 border-b border-slate-700/60 pb-3">
-            <i class="fa-solid fa-cubes text-indigo-400"></i> 패턴 연습으로 익히기
+            <i class="fa-solid fa-cubes text-indigo-400"></i> AI 생성 패턴 연습
           </h3>
       `;
 
@@ -492,7 +350,7 @@
           html += `
             <div class="bg-slate-950 border border-slate-800/80 rounded-xl px-4 py-3 text-slate-200 text-xs md:text-sm flex justify-between items-center hover:border-slate-700 transition">
               <span>${item}</span>
-              <button onclick="speakText('${item.replace(/'/g, "\\'")}')" class="text-slate-500 hover:text-indigo-400 transition ml-2 shrink-0">
+              <button onclick="speak('${item.replace(/'/g, "\\'")}')" class="text-slate-500 hover:text-indigo-400 transition ml-2 shrink-0">
                 <i class="fa-solid fa-volume-high"></i>
               </button>
             </div>
@@ -506,10 +364,10 @@
     }
 
     function setupPractice() {
+      if (!currentData) return;
       practiceList = [];
       
-      // 3가지 대표 문장 + 9가지 패턴 문장을 모아 연속 연습 세트 구성
-      currentData.nuances.forEach(n => practiceList.push({ ko: currentData.ko, en: n.en }));
+      currentData.sections.forEach(n => practiceList.push({ ko: currentData.ko, en: n.en }));
       currentData.patterns.forEach(p => {
         p.items.forEach(item => practiceList.push({ ko: p.title, en: item }));
       });
@@ -530,7 +388,7 @@
       document.getElementById('feedback').innerText = '';
       document.getElementById('statCurrent').innerText = practiceIndex + 1;
       
-      speakText(item.en);
+      speak(item.en);
     }
 
     function checkTyping() {
@@ -538,7 +396,7 @@
       const feedback = document.getElementById('feedback');
 
       if (input.toLowerCase() === currentPracticeSentence.toLowerCase()) {
-        feedback.innerText = "✨ 정답입니다! 아주 잘하셨어요.";
+        feedback.innerText = "✨ 정답입니다!";
         feedback.className = "text-sm h-6 font-semibold text-emerald-400";
         successCount++;
         document.getElementById('statSuccess').innerText = successCount;
@@ -550,6 +408,7 @@
     }
 
     function nextPractice() {
+      if (practiceList.length === 0) return;
       practiceIndex = (practiceIndex + 1) % practiceList.length;
       loadPracticeCard();
     }
@@ -558,17 +417,15 @@
       if (tab === 'cards') {
         document.getElementById('tabCards').classList.remove('hidden');
         document.getElementById('tabPractice').classList.add('hidden');
-        document.getElementById('btnTabCards').className = "px-3.5 py-2 text-xs md:text-sm rounded-lg font-semibold bg-indigo-600 text-white transition flex items-center gap-1.5";
-        document.getElementById('btnTabPractice').className = "px-3.5 py-2 text-xs md:text-sm rounded-lg font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700 transition flex items-center gap-1.5";
+        document.getElementById('btnTabCards').className = "px-3 py-1.5 text-xs md:text-sm rounded-lg font-semibold bg-indigo-600 text-white transition flex items-center gap-1.5";
+        document.getElementById('btnTabPractice').className = "px-3 py-1.5 text-xs md:text-sm rounded-lg font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700 transition flex items-center gap-1.5";
       } else {
         document.getElementById('tabCards').classList.add('hidden');
         document.getElementById('tabPractice').classList.remove('hidden');
-        document.getElementById('btnTabPractice').className = "px-3.5 py-2 text-xs md:text-sm rounded-lg font-semibold bg-indigo-600 text-white transition flex items-center gap-1.5";
-        document.getElementById('btnTabCards').className = "px-3.5 py-2 text-xs md:text-sm rounded-lg font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700 transition flex items-center gap-1.5";
+        document.getElementById('btnTabPractice').className = "px-3 py-1.5 text-xs md:text-sm rounded-lg font-semibold bg-indigo-600 text-white transition flex items-center gap-1.5";
+        document.getElementById('btnTabCards').className = "px-3 py-1.5 text-xs md:text-sm rounded-lg font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700 transition flex items-center gap-1.5";
       }
     }
-
-    window.onload = init;
   </script>
 </body>
 </html>
